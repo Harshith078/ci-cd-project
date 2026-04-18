@@ -37,7 +37,7 @@ pipeline {
                         sh """
                         mvn sonar:sonar \
                         -Dsonar.host.url=$SONAR_URL \
-                        -Dsonar.token=$TOKEN
+                        -Dsonar.login=$TOKEN
                         """
                     }
                 }
