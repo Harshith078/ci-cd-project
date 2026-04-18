@@ -16,7 +16,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git credentialsId: 'github-ssh', url: 'git@github.com:<YOUR-USERNAME>/<YOUR-REPO>.git'
+                git credentialsId: 'github-ssh', url: 'git@github.com:Harshith078/ci-cd-project.git'
             }
         }
 
