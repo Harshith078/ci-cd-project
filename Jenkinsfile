@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SONAR_URL = "https://32.192.187.102"
+        SONAR_URL = "http://32.192.187.102:9000"
         DOCKER_REGISTRY = "32.192.187.102:8082"
         IMAGE_NAME = "demo-app"
     }
