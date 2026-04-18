@@ -2,15 +2,21 @@ pipeline {
     agent any
 
     environment {
-        APP_IP = "<EC2-2-IP>"
-        IMAGE = "app-image"
+        SONAR_URL = "https://32.192.187.102"
+        DOCKER_REGISTRY = "32.192.187.102:8082"
+        IMAGE_NAME = "demo-app"
+    }
+
+    tools {
+        maven 'maven3'
+        jdk 'jdk21'
     }
 
     stages {
 
         stage('Checkout') {
             steps {
-                git 'https://github.com/<your-username>/<repo>.git'
+                git credentialsId: 'github-ssh', url: 'git@github.com:<YOUR-USERNAME>/<YOUR-REPO>.git'
             }
         }
 
@@ -22,13 +28,13 @@ pipeline {
             }
         }
 
-        stage('SonarQube') {
+        stage('SonarQube Analysis') {
             steps {
                 dir('app') {
                     withCredentials([string(credentialsId: 'sonar-token', variable: 'TOKEN')]) {
                         sh """
                         mvn sonar:sonar \
-                        -Dsonar.host.url=http://$APP_IP:9000 \
+                        -Dsonar.host.url=$SONAR_URL \
                         -Dsonar.token=$TOKEN
                         """
                     }
@@ -36,9 +42,9 @@ pipeline {
             }
         }
 
-        stage('Build Docker') {
+        stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $IMAGE ./app'
+                sh 'docker build -t $IMAGE_NAME ./app'
             }
         }
 
@@ -46,9 +52,9 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-registry-user-pass', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     sh """
-                    echo $PASS | docker login $APP_IP:8082 -u $USER --password-stdin
-                    docker tag $IMAGE $APP_IP:8082/$IMAGE
-                    docker push $APP_IP:8082/$IMAGE
+                    echo $PASS | docker login $DOCKER_REGISTRY -u $USER --password-stdin
+                    docker tag $IMAGE_NAME $DOCKER_REGISTRY/$IMAGE_NAME
+                    docker push $DOCKER_REGISTRY/$IMAGE_NAME
                     """
                 }
             }
@@ -57,12 +63,9 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh """
-                ssh ubuntu@$APP_IP '
-                  docker stop app || true
-                  docker rm app || true
-                  docker pull $APP_IP:8082/$IMAGE
-                  docker run -d -p 8083:8080 --name app $APP_IP:8082/$IMAGE
-                '
+                docker stop app || true
+                docker rm app || true
+                docker run -d -p 8083:8080 --name app $DOCKER_REGISTRY/$IMAGE_NAME
                 """
             }
         }
