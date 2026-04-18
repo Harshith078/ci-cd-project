@@ -64,7 +64,7 @@ stages {
                 docker tag demo-app 98.91.191.208:8082/demo-app
 
                 # Login to Nexus
-                docker login 98.91.191.208:8082 -u jenkins -p YOUR_NEXUS_PASSWORD
+                docker login 98.91.191.208:8082 -u jenkins -p Manualchanges@123
 
                 # Push image
                 docker push 98.91.191.208:8082/demo-app
